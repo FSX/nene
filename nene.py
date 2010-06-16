@@ -20,6 +20,7 @@ import socket
 import asyncore
 import asynchat
 from thread import start_new_thread
+from ConfigParser import SafeConfigParser
 
 
 DEFAULT_PORT = 6667
@@ -261,14 +262,15 @@ class IRCBot(asynchat.async_chat):
 
 if __name__ == '__main__':
 
-    app_path = os.path.abspath(os.path.dirname(__file__))
+    config = SafeConfigParser()
+    config.read('./nene.cfg')
 
     ircbot = IRCBot(**{
-        'nick': 'Nene',
-        'name': 'Nene',
-        'channels': ['#nene'],
-        'password': None,
-        'plugin_path': os.path.join(app_path, 'plugins')
+        'nick': config.get('bot', 'nick'),
+        'name': config.get('bot', 'name'),
+        'channels': config.get('bot', 'channels').split(', '),
+        'password': config.get('bot', 'password'),
+        'plugin_path': config.get('plugins', 'path')
     })
 
-    ircbot.run('irc.freenode.net', 6667)
+    ircbot.run(config.get('irc', 'host'), config.get('irc', 'port'))
