@@ -9,10 +9,7 @@ def test_plugin(api, matches, origin, dest, text):
 config = [
     {
         'function': test_plugin,
-        'regex': {
-            'subject': 'text',
-            'pattern': '^\$test$'
-        },
-        'event': 'recieve-msg'
+        'regex': ['text', '^\$test$'],
+        'event': 'receive-msg'
     }
 ]

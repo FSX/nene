@@ -17,26 +17,17 @@ def quit(api, matches, origin, dest, text):
 config = [
     {
         'function': join,
-        'regex': {
-            'subject': 'text',
-            'pattern': '^\$join (#\S+)$'
-        },
-        'event': 'recieve-privmsg'
+        'regex': ['text', '^\$join (#\S+)$'],
+        'event': 'receive-privmsg'
     },
     {
         'function': part,
-        'regex': {
-            'subject': 'text',
-            'pattern': '^\$part (#\S+)$'
-        },
-        'event': 'recieve-privmsg'
+        'regex': ['text', '^\$part (#\S+)$'],
+        'event': 'receive-privmsg'
     },
     {
         'function': quit,
-        'regex': {
-            'subject': 'text',
-            'pattern': '^\$quit(?: (.*))?$'
-        },
-        'event': 'recieve-privmsg'
+        'regex': ['text', '^\$quit(?: (.*))?$'],
+        'event': 'receive-privmsg'
     }
 ]

@@ -26,20 +26,8 @@ def google_plugin(api, matches, origin, dest, text):
 config = [
     {
         'function': google_plugin,
-        'regex': {
-            'subject': 'text',
-            'pattern': '^\$g (.*?)$'
-        },
-        'event': 'recieve-msg',
-        'thread': True
-    },
-    {
-        'function': google_plugin,
-        'regex': {
-            'subject': 'text',
-            'pattern': '^\$google (.*?)$'
-        },
-        'event': 'recieve-msg',
+        'regex': ['text', '^\$g(?:oogle)? (.*?)$'],
+        'event': 'receive-msg',
         'thread': True
     }
 ]

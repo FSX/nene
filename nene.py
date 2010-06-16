@@ -57,8 +57,8 @@ class Event(object):
 
         self.listeners[event].add((
             function, (
-                regex['subject'],
-                regex['pattern']
+                regex[0],
+                regex[1]
             ),
             thread
         ))
@@ -135,11 +135,16 @@ class IRCBot(asynchat.async_chat):
         if os.path.exists(plugin_path):
             self._load_plugins(plugin_path)
 
-        # Testing
+        # Testing -------------------
+
+        print '\n--- Plugins ---\n'
+
         for k, v in self.event.listeners.iteritems():
             print k
             for e in v:
                 print '    ', e
+
+        print '\n---------------\n'
 
     def _load_plugins(self, plugin_path):
         """Load plugins and register functions to events."""
@@ -149,8 +154,8 @@ class IRCBot(asynchat.async_chat):
                 plugin = imp.load_source(os.path.basename(fn)[:-3],
                     os.path.join(plugin_path, fn))
                 for config in plugin.config:
-                    if config['regex']['pattern']:
-                        config['regex']['pattern'] = re.compile(config['regex']['pattern'])
+                    if config['regex'][1]:
+                        config['regex'][1] = re.compile(config['regex'][1])
                     self.event.register(**config)
 
     def _write(self, args, text=None):
@@ -241,7 +246,7 @@ class IRCBot(asynchat.async_chat):
                 if args[0] == 'PRIVMSG' and args[1].startswith('#'):
                     args[0] = 'MSG'
 
-            self.event.call('recieve-' + args[0].lower(), event_args)
+            self.event.call('receive-' + args[0].lower(), event_args)
 
     def run(self, host, port=DEFAULT_PORT):
         """Run the IRC bot (connect to the host)."""
@@ -267,39 +272,4 @@ if __name__ == '__main__':
         'plugin_path': os.path.join(app_path, 'plugins')
     })
 
-    ircbot.run('irc.freenode.net', 6667)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    #ircbot.run('irc.freenode.net', 6667)
