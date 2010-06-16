@@ -6,7 +6,7 @@ import json
 import urllib
 
 
-def google_plugin(api, matches, origin, dest, text):
+def google(api, matches, origin, dest, text):
 
     query = matches.group(1)
     uri = 'http://ajax.googleapis.com/ajax/services/search/web'
@@ -25,7 +25,7 @@ def google_plugin(api, matches, origin, dest, text):
 
 config = [
     {
-        'function': google_plugin,
+        'function': google,
         'regex': ['text', '^\$g(?:oogle)? (.*?)$'],
         'event': 'receive-msg',
         'thread': True

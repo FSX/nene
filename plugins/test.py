@@ -2,13 +2,13 @@
 #-*- coding: utf-8 -*-
 
 
-def test_plugin(api, matches, origin, dest, text):
+def test(api, matches, origin, dest, text):
     api.msg(dest, 'This is a test!')
 
 
 config = [
     {
-        'function': test_plugin,
+        'function': test,
         'regex': ['text', '^\$test$'],
         'event': 'receive-msg'
     }

@@ -154,8 +154,7 @@ class IRCBot(asynchat.async_chat):
                 plugin = imp.load_source(os.path.basename(fn)[:-3],
                     os.path.join(plugin_path, fn))
                 for config in plugin.config:
-                    if config['regex'][1]:
-                        config['regex'][1] = re.compile(config['regex'][1])
+                    config['regex'][1] = re.compile(config['regex'][1])
                     self.event.register(**config)
 
     def _write(self, args, text=None):
@@ -272,4 +271,4 @@ if __name__ == '__main__':
         'plugin_path': os.path.join(app_path, 'plugins')
     })
 
-    #ircbot.run('irc.freenode.net', 6667)
+    ircbot.run('irc.freenode.net', 6667)
