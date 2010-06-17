@@ -1,13 +1,15 @@
 """
-Nene, An IRC bot.
+Nene, An IRC-bot.
 Copyright 2010, Frank Smit, 61924.nl
 Licensed under the Eiffel Forum License 2.
 
-The code that deals with connecting and parsing the data in the IRC class was
-taken from Phenny[1] (irc.py) (copyright 2008, Sean B. Palmer, inamidst.com).
+Nene is a simple IRC-bot. It's just a project for fun to improve my knowledge
+of Python. I'm using Phenny as a reference and I'm also using some code from
+Phenny. And I'll probably also port some plugins. Therefore this project is
+licensed under the Eiffel Forum License 2. That's the same license Phenny's
+using.
 
-
- [1]: http://inamidst.com/phenny/
+ [Phenny]: http://inamidst.com/phenny/
 
 """
 
