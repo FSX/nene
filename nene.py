@@ -50,54 +50,45 @@ class Event(object):
     def __init__(self):
         pass
 
-    def register(self, function, regex, event, thread=False):
+    def register(self, event, func, regex, thread=False):
         """Register/Add a function to a event."""
 
         if event not in self.listeners:
             self.listeners[event] = set()
-
-        self.listeners[event].add((
-            function, (
-                regex[0],
-                regex[1]
-            ),
-            thread
-        ))
+        self.listeners[event].add((func, regex, thread))
 
     def call(self, event_name, data=None):
         """Call all functions connected to the specified event."""
 
-        print 'Event: %s' % event_name
-
-        def run_plugin(function, regex, data=None):
-            if regex[0] in data:
+        def run_plugin(func, regex, data=None):
+            if regex and regex[0] in data:
                 data['matches'] = regex[1].match(data[regex[0]])
                 if not data['matches']:
                     return
-
             if data is None:
-                function()
+                func()
             else:
                 if type(data) == type([]):
-                    function(*data)
+                    func(*data)
                 elif type(data) == type({}):
-                    function(**data)
+                    func(**data)
                 else:
-                    function(data)
+                    func(data)
 
         if event_name in self.listeners:
-            for function, regex, thread in self.listeners[event_name]:
+            for func, regex, thread in self.listeners[event_name]:
                 if thread:
-                    start_new_thread(run_plugin, (function, regex, data))
+                    start_new_thread(run_plugin, (func, regex, data))
                 else:
-                    run_plugin(function, regex, data)
+                    run_plugin(func, regex, data)
 
 
 class API(object):
     """This is the plublic API for plugins."""
 
-    def __init__(self, irc):
+    def __init__(self, irc, cfg):
         self.__irc = irc
+        self.cfg = cfg
 
     def join(self, channel):
         self.__irc._write(('JOIN',), channel)
@@ -119,13 +110,13 @@ class IRCBot(asynchat.async_chat):
     """A simple IRC bot that connects to the host and launches an 'event' when
     data is recieved and send."""
 
-    def __init__(self, nick, name, channels, password=None, plugin_path=None):
+    def __init__(self, cfg, nick, name, channels, password=None, plugin_path=None):
         asynchat.async_chat.__init__(self)
 
         self.buffer = ''
         self.set_terminator('\n')
         self.event = Event()
-        self.api = API(self)
+        self.api = API(self, cfg)
 
         self.nick = nick
         self.user = nick
@@ -134,10 +125,9 @@ class IRCBot(asynchat.async_chat):
         self.password = password
 
         if os.path.exists(plugin_path):
-            self._load_plugins(plugin_path)
+            self._find_plugins(plugin_path)
 
-        # Testing -------------------
-
+        # Testing
         print '\n--- Plugins ---\n'
 
         for k, v in self.event.listeners.iteritems():
@@ -147,16 +137,28 @@ class IRCBot(asynchat.async_chat):
 
         print '\n---------------\n'
 
-    def _load_plugins(self, plugin_path):
-        """Load plugins and register functions to events."""
+    def _find_plugins(self, plugin_path):
+        """Find all the plugins and load them."""
 
         for fn in os.listdir(plugin_path):
             if fn.endswith('.py') and not fn.startswith('_'):
-                plugin = imp.load_source(os.path.basename(fn)[:-3],
-                    os.path.join(plugin_path, fn))
-                for config in plugin.config:
-                    config['regex'][1] = re.compile(config['regex'][1])
-                    self.event.register(**config)
+                self._load_plugin(os.path.join(plugin_path, fn))
+
+    def _load_plugin(self, file_path):
+        """Load a plugin and bind the plugin functions to events."""
+
+        plugin = imp.load_source(os.path.basename(file_path)[:-3], file_path)
+
+        for func in plugin.__dict__.values():
+            if hasattr(func, 'events'):
+                if hasattr(func, 'regex'):
+                    func.regex = (func.regex[0], re.compile(func.regex[1]))
+                else:
+                    func.regex = ()
+                if not hasattr(func, 'thread'):
+                    func.thread = False
+                for event in func.events:
+                    self.event.register(event, func, func.regex, func.thread)
 
     def _write(self, args, text=None):
         """Write a message to the server."""
@@ -262,15 +264,16 @@ class IRCBot(asynchat.async_chat):
 
 if __name__ == '__main__':
 
-    config = SafeConfigParser()
-    config.read('./nene.cfg')
+    cp = SafeConfigParser()
+    cp.read('./nene.cfg')
 
     ircbot = IRCBot(**{
-        'nick': config.get('bot', 'nick'),
-        'name': config.get('bot', 'name'),
-        'channels': config.get('bot', 'channels').split(', '),
-        'password': config.get('bot', 'password'),
-        'plugin_path': config.get('plugins', 'path')
+        'cfg': cp,
+        'nick': cp.get('bot', 'nick'),
+        'name': cp.get('bot', 'name'),
+        'channels': cp.get('bot', 'channels').split(', '),
+        'password': cp.get('bot', 'password'),
+        'plugin_path': cp.get('plugins', 'path')
     })
 
-    ircbot.run(config.get('irc', 'host'), config.get('irc', 'port'))
+    ircbot.run(cp.get('irc', 'host'), cp.getint('irc', 'port'))

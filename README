@@ -1,0 +1,6 @@
+Nene, An IRC bot.
+Copyright 2010, Frank Smit, 61924.nl
+Licensed under the Eiffel Forum License 2.
+
+The code that deals with connecting and parsing the data in the IRC class was
+taken from Phenny[1] (irc.py) (copyright 2008, Sean B. Palmer, inamidst.com).

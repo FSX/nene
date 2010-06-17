@@ -22,12 +22,6 @@ def google(api, matches, origin, dest, text):
     else:
         api.msg(dest, 'No results...')
 
-
-config = [
-    {
-        'function': google,
-        'regex': ['text', '^\$g(?:oogle)? (.*?)$'],
-        'event': 'receive-msg',
-        'thread': True
-    }
-]
+google.events = ('receive-msg',)
+google.regex = ('text', '^\$g(?:oogle)? (.*?)$')
+google.thread = True
