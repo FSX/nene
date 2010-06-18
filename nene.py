@@ -49,8 +49,8 @@ class Event(object):
 
     listeners = {}
 
-    def __init__(self):
-        pass
+    def __init__(self, verbose=False):
+        self.verbose = verbose
 
     def register(self, event, func, regex, thread=False):
         """Register/Add a function to a event."""
@@ -59,7 +59,7 @@ class Event(object):
             self.listeners[event] = set()
         self.listeners[event].add((func, regex, thread))
 
-    def call(self, event_name, data=None):
+    def call(self, event, data=None):
         """Call all functions connected to the specified event."""
 
         def run_plugin(func, regex, data=None):
@@ -77,8 +77,11 @@ class Event(object):
                 else:
                     func(data)
 
-        if event_name in self.listeners:
-            for func, regex, thread in self.listeners[event_name]:
+        if event in self.listeners:
+            if self.verbose:
+                print '\x1b[33m++\x1b[0m  Event: %s - run %d plugin functions' % \
+                    (event, len(self.listeners[event]))
+            for func, regex, thread in self.listeners[event]:
                 if thread:
                     start_new_thread(run_plugin, (func, regex, data))
                 else:
@@ -116,8 +119,9 @@ class IRCBot(asynchat.async_chat):
         asynchat.async_chat.__init__(self)
 
         self.buffer = ''
+        self.verbose = cfg.getboolean('irc', 'verbose')
         self.set_terminator('\n')
-        self.event = Event()
+        self.event = Event(self.verbose)
         self.api = API(self, cfg)
 
         self.nick = nick
@@ -129,16 +133,6 @@ class IRCBot(asynchat.async_chat):
         if os.path.exists(plugin_path):
             self._find_plugins(plugin_path)
 
-        # Testing
-        print '\n--- Plugins ---\n'
-
-        for k, v in self.event.listeners.iteritems():
-            print k
-            for e in v:
-                print '    ', e
-
-        print '\n---------------\n'
-
     def _find_plugins(self, plugin_path):
         """Find all the plugins and load them."""
 
@@ -149,7 +143,8 @@ class IRCBot(asynchat.async_chat):
     def _load_plugin(self, file_path):
         """Load a plugin and bind the plugin functions to events."""
 
-        plugin = imp.load_source(os.path.basename(file_path)[:-3], file_path)
+        name = os.path.basename(file_path)[:-3]
+        plugin = imp.load_source(name, file_path)
 
         for func in plugin.__dict__.values():
             if hasattr(func, 'events'):
@@ -162,18 +157,26 @@ class IRCBot(asynchat.async_chat):
                 for event in func.events:
                     self.event.register(event, func, func.regex, func.thread)
 
+        if self.verbose:
+            print '\x1b[31m--\x1b[0m  Loaded plugin: %s ' % name
+
     def _write(self, args, text=None):
         """Write a message to the server."""
 
-        print 'Write: %r %r %r' % (self, args, text) # Testing
-
         if text is not None:
-            self.push(' '.join(args) + ' :' + safe_input(text) + '\r\n')
+            if self.verbose:
+                print '\x1b[32m>>\x1b[0m  %s :%s' % (' '.join(args), safe_input(text))
+            self.push('%s :%s\r\n' % (' '.join(args), safe_input(text)))
         else:
-            self.push(' '.join(args) + '\r\n')
+            if self.verbose:
+                print '\x1b[32m>>\x1b[0m  %s' % ' '.join(args)
+            self.push('%s\r\n' % ' '.join(args))
 
     def handle_connect(self):
         """Called when the socket connects."""
+
+        if self.verbose:
+            print '\x1b[31m--\x1b[0m  Connected to IRC-server!'
 
         if self.password:
             self._write(('PASS', self.password))
@@ -185,8 +188,10 @@ class IRCBot(asynchat.async_chat):
             self._write(('JOIN',), channel)
 
     def collect_incoming_data(self, data):
+
+        if self.verbose:
+            print '\x1b[34m<<\x1b[0m  %s' % data
         self.buffer += data
-        print 'Buffer: ' + data
 
     def found_terminator(self):
         """Process data that comes from the server."""
@@ -209,15 +214,6 @@ class IRCBot(asynchat.async_chat):
 
         # Parse the source (where the data comes from)
         nickname, username, hostname = parse_origin(source)
-
-        # Testing
-#         print '---------------------------------------------------------------'
-#         print 'Args: %r' % args
-#         print 'Source: %r' % source
-#         print 'Origin: %r' % [parse_origin(source)]
-#         print 'Line: %r' % line
-#         print 'Text: %r' % text
-#         print '---------------------------------------------------------------'
 
         # Respond to server ping to keep connection alive
         if args[0] == 'PING':
@@ -255,6 +251,9 @@ class IRCBot(asynchat.async_chat):
     def run(self, host, port=DEFAULT_PORT):
         """Run the IRC bot (connect to the host)."""
 
+        if self.verbose:
+            print '\x1b[31m--\x1b[0m  Connecting to %s:%s...' % (host, port)
+
         try:
             self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
             self.connect((host, port))
@@ -266,8 +265,14 @@ class IRCBot(asynchat.async_chat):
 
 if __name__ == '__main__':
 
+    try:
+        config_file = sys.argv[1]
+    except:
+        print >> sys.stderr, 'Missing configuration file!'
+        sys.exit()
+
     cp = SafeConfigParser()
-    cp.read('./nene.cfg')
+    cp.read(config_file)
 
     ircbot = IRCBot(**{
         'cfg': cp,
