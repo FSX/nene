@@ -19,7 +19,7 @@ import re
 import sys
 import imp
 import socket
-import asyncore
+import asyncoremod
 import asynchat
 from thread import start_new_thread
 from ConfigParser import SafeConfigParser
@@ -220,7 +220,7 @@ class IRCBot(asynchat.async_chat):
             self._write(('PONG', text))
 
         # Prepare event arguments and call the event
-        if args[0] in ['PING', 'JOIN', 'PART', 'PRIVMSG', 'NOTICE']:
+        if args[0] in ('PING', 'JOIN', 'PART', 'PRIVMSG', 'NOTICE'):
 
             event_args = {'api': self.api, 'matches': None}
             text = text.strip()
@@ -257,7 +257,7 @@ class IRCBot(asynchat.async_chat):
         try:
             self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
             self.connect((host, port))
-            asyncore.loop()
+            asyncoremod.loop()
         except KeyboardInterrupt:
             self._write(('QUIT',)) # Properly quit the IRC server
             sys.exit()
