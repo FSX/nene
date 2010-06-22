@@ -118,7 +118,7 @@ class IRCBot(asynchat.async_chat):
     def __init__(self, cfg, nick, name, channels, password=None, plugin_path=None):
         asynchat.async_chat.__init__(self)
 
-        self.buffer = ''
+        self.buffer = []
         self.verbose = cfg.getboolean('irc', 'verbose')
         self.set_terminator('\n')
         self.event = Event(self.verbose)
@@ -191,15 +191,15 @@ class IRCBot(asynchat.async_chat):
 
         if self.verbose:
             print '\x1b[34m<<\x1b[0m  %s' % data
-        self.buffer += data
+        self.buffer.append(data)
 
     def found_terminator(self):
         """Process data that comes from the server."""
 
-        line = self.buffer
+        line = ''.join(self.buffer)
         if line.endswith('\r'):
             line = line[:-1]
-        self.buffer = ''
+        self.buffer = []
 
         if line.startswith(':'):
             source, line = line[1:].split(' ', 1)

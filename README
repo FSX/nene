@@ -6,9 +6,12 @@ using.
 
  [Phenny]: http://inamidst.com/phenny/
 
+The kqueue_poller in asyncoremod is from the patch at http://bugs.python.org/issue6692
+and has not been tested by me since I don't have *BSD. I'll test it later when
+I installed a BSD OS.
+
 To do list:
 
- - Let asyncore work with kqueue.
  - Accept commands from STDIN.
  - Launch events when the bot connects and sends messages (pre-connect,
    post-connect and send-*).
