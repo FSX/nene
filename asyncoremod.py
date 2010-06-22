@@ -1,12 +1,17 @@
-"""A small modification of asyncore."""
+"""
+A small modification of asyncore. Refer to the asyncore module for the license.
+"""
 
 
 import select
 import asyncore
 
 
+# This function is identical to the poll2 function in asyncore, except that it
+# uses selectepoll instead of select.poll
 def epoll(timeout=0.0, map=None):
-    # Use the poll() support added to the select module in Python 2.0
+    # Use the epoll() support added to the select module in Python 2.6
+
     if map is None:
         map = asyncore.socket_map
     if timeout is not None:
@@ -38,14 +43,23 @@ def epoll(timeout=0.0, map=None):
             asyncore.readwrite(obj, flags)
 
 
-def loop(timeout=30.0, map=None, count=None):
+if hasattr(select, 'epoll'):
+    _poll = epoll
+elif hasattr(select, 'poll'):
+    _poll = asyncore.poll2
+else:
+    _poll = asyncore.poll
+
+
+# This is a slightly modified version of the loop function from asyncore
+def loop(timeout=30.0, poller=_poll, map=None, count=None):
     if map is None:
         map = asyncore.socket_map
 
     if count is None:
         while map:
-            epoll(timeout, map)
+            poller(timeout, map)
     else:
         while map and count > 0:
-            epoll(timeout, map)
+            poller(timeout, map)
             count = count - 1

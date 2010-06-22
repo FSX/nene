@@ -5,3 +5,11 @@ licensed under the Eiffel Forum License 2. That's the same license Phenny's
 using.
 
  [Phenny]: http://inamidst.com/phenny/
+
+To do list:
+
+ - Let asyncore work with kqueue.
+ - Accept commands from STDIN.
+ - Launch events when the bot connects and sends messages (pre-connect,
+   post-connect and send-*).
+ - Write more plugins.
