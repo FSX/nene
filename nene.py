@@ -79,7 +79,7 @@ class Event(object):
 
         if event in self.listeners:
             if self.verbose:
-                print '\x1b[33m++\x1b[0m  Event: %s - run %d plugin functions' % \
+                print '\x1b[33m++\x1b[0m  Event: %s - running %d plugin function(s)' % \
                     (event, len(self.listeners[event]))
             for func, regex, thread in self.listeners[event]:
                 if thread:
@@ -188,9 +188,6 @@ class IRCBot(asynchat.async_chat):
             self._write(('JOIN',), channel)
 
     def collect_incoming_data(self, data):
-
-        if self.verbose:
-            print '\x1b[34m<<\x1b[0m  %s' % data
         self.buffer.append(data)
 
     def found_terminator(self):
@@ -200,6 +197,9 @@ class IRCBot(asynchat.async_chat):
         if line.endswith('\r'):
             line = line[:-1]
         self.buffer = []
+
+        if self.verbose:
+            print '\x1b[34m<<\x1b[0m  %s' % line
 
         if line.startswith(':'):
             source, line = line[1:].split(' ', 1)
@@ -255,11 +255,13 @@ class IRCBot(asynchat.async_chat):
             print '\x1b[31m--\x1b[0m  Connecting to %s:%s...' % (host, port)
 
         try:
+            self.event.call('pre-connect', {'api': self.api})
             self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
             self.connect((host, port))
             asyncoremod.loop()
         except KeyboardInterrupt:
             self._write(('QUIT',)) # Properly quit the IRC server
+            self.event.call('post-disconnect', {'api': self.api})
             sys.exit()
 
 
