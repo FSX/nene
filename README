@@ -1,18 +1,2 @@
 Nene is a simple IRC-bot. It's just a project for fun to improve my knowledge
-of Python. I'm using Phenny as a reference and I'm also using some code from
-Phenny. And I'll probably also port some plugins. Therefore this project is
-licensed under the Eiffel Forum License 2. That's the same license Phenny's
-using.
-
- [Phenny]: http://inamidst.com/phenny/
-
-The kqueue_poller in asyncoremod is from the patch at http://bugs.python.org/issue6692
-and has not been tested by me since I don't have *BSD. I'll test it later when
-I installed a BSD OS.
-
-To do list:
-
- - Accept commands from STDIN.
- - Launch events when the bot connects and sends messages (pre-connect,
-   post-connect and send-*).
- - Write more plugins.
+of Python. And too create fun stuff.
